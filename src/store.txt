@@ -1,0 +1,103 @@
+	/*
+	  public View( WndProc proc ){
+	        this.setSize(800, 500);
+	        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	        MyPanel panel = new MyPanel( this, proc );
+			JLabel label = new JLabel( "Hello, Java" );
+			Font font = new Font( "Meiryo", Font.BOLD, 50 );
+			label.setFont(font);
+			label.setSize( 200, 200 );
+			label.setLocation(200, 200);
+			// add() method insett into frame from top to bottom
+			this.getContentPane().add( label );
+	        this.getContentPane().add( panel );	
+
+	        panel.setBackground( Color.white );
+	        
+
+	        MyCanvas cvs = new MyCanvas();
+	        panel.setPreferredSize( new Dimension( 800,500 ) );
+	        cvs.setPreferredSize( new Dimension( 800, 500 ) );
+	        this.setGlassPane( cvs );
+//	        this.add(panel);
+
+
+	        
+	        // enable to decorate main frame
+//	        this.setUndecorated( true );
+	        this.setVisible(true);
+	        this.getGlassPane().setVisible( true );
+	    }
+*/
+
+class MyCanvas extends JComponent implements MouseListener, MouseMotionListener {
+	// 描画内容を保持するBufferedImage
+				private BufferedImage cImage = null;
+				// cImageに描画するためのインスタンス
+				private Graphics2D g2d;
+
+				// 線の開始座標・終了座標
+				private int x, y, xx, yy;
+				// 描画モードＯＲ消しゴムモード
+				private int type;
+				// 線の太さ
+				public int width = 1;
+				// 線の色
+				public Color c = Color.black;
+	public MyCanvas() {
+
+		// MouseListener・MouseMotionListenerを設定
+		addMouseListener(this);
+		addMouseMotionListener(this);
+
+	}
+	
+	public void paint( Graphics g ) {
+		
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		// TODO Auto-generated method stub
+		System.out.print( "Drag");
+		
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+}
+
