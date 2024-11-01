@@ -2,25 +2,15 @@ package window;
 
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.Toolkit;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import javax.swing.Action;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
-import javax.swing.text.DocumentFilter.FilterBypass;
 
 
 @SuppressWarnings("serial")
@@ -50,10 +40,11 @@ class TextPaneProperty {
 		this.textPane = new JTextPane();
 		this.textPane.setCaretPosition( 0 );
 		this.textPane.setMargin( new Insets( 20, 40, 20, 40 ) );
+		this.textPane.setPreferredSize( new Dimension( 800, 600 ) );
 		this.abstDoc = ( AbstractDocument ) this.textPane.getStyledDocument();
-		this.abstDoc.setDocumentFilter( new DocumentSizeFilter ( 300 ));
-		this.textPane.setEditable( true );
-		this.textPane.setFont( new Font( "Meiryo", Font.LAYOUT_NO_LIMIT_CONTEXT, 30 ) );
+		this.abstDoc.setDocumentFilter( new DocumentFilter ( ));
+		this.textPane.setEditable( false );
+		this.textPane.setFont( new Font( "Meiryo", Font.LAYOUT_NO_LIMIT_CONTEXT, 25 ) );
 	}
 	public JTextPane getTextPane() {
 		return this.textPane;
@@ -61,49 +52,4 @@ class TextPaneProperty {
 	public AbstractDocument getDocument() {
 		return this.abstDoc;
 	}
-}
-
-class DocumentSizeFilter extends DocumentFilter {
-    int maxCharacters;
-    boolean DEBUG = false;
-
-    public DocumentSizeFilter(int maxChars) {
-        maxCharacters = maxChars;
-    }
-
-    public void insertString(FilterBypass fb, int offs,
-                             String str, AttributeSet a)
-        throws BadLocationException {
-        if (DEBUG) {
-            System.out.println("in DocumentSizeFilter's insertString method");
-        }
-
-        //This rejects the entire insertion if it would make
-        //the contents too long. Another option would be
-        //to truncate the inserted string so the contents
-        //would be exactly maxCharacters in length.
-        if ((fb.getDocument().getLength() + str.length()) <= maxCharacters)
-            super.insertString(fb, offs, str, a);
-        else
-            Toolkit.getDefaultToolkit().beep();
-    }
-    
-    public void replace(FilterBypass fb, int offs,
-                        int length, 
-                        String str, AttributeSet a)
-        throws BadLocationException {
-        if (DEBUG) {
-            System.out.println("in DocumentSizeFilter's replace method");
-        }
-        //This rejects the entire replacement if it would make
-        //the contents too long. Another option would be
-        //to truncate the replacement string so the contents
-        //would be exactly maxCharacters in length.
-        if ((fb.getDocument().getLength() + str.length()
-             - length) <= maxCharacters)
-            super.replace(fb, offs, length, str, a);
-        else
-            Toolkit.getDefaultToolkit().beep();
-    }
-
 }

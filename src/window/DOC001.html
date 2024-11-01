@@ -27,6 +27,102 @@
             <script type="module">window.addEventListener( "load", ()=>{ setCanvas( "Section-Name1", "#Section-Header1" ) } )</script>
  <!--           <div id="Section-Block"><h2>セクション</h2><canvas id="Space"></canvas></div>       -->
             <script type="module">window.addEventListener( "load", ()=>{drawSectionHeader( ".Section-Devider" );} )</script>
+            <p>
+				TextLayoutは、書式付き文字データの不変のグラフィック表現です。
+このクラスは次の機能を提供します。
+
+暗黙的な双方向の分析と並べ替え
+カーソルの位置指定と移動(混合方向テキストのための分割カーソルを含む)
+ハイライト(混合方向テキストのための論理的ハイライトと視覚的ハイライトを含む)
+複数のベースライン(ローマン・ベースライン、ぶら下がりベースライン、およびセンター・ベースライン)
+ヒットのテスト
+位置揃え
+デフォルト・フォントの置換
+アセント、ディセント、および有効幅などのメトリック情報
+描画
+TextLayoutオブジェクトは、drawメソッドを使用して描画できます。
+
+TextLayoutは、直接またはLineBreakMeasurerを介して作成できます。直接作成される場合、ソース・テキストは1つの段落を表します。LineBreakMeasurerでは、特定の幅に収まる複数の行に書式付きテキストを分割できます。詳細は、LineBreakMeasurerのドキュメントを参照してください。
+
+TextLayoutの構築は、論理的には次の順序で行われます。
+
+段落属性が抽出され、調べられる
+双方向の並べ替えのためにテキストが分析され、必要な場合は並べ替え情報が計算される
+テキストがスタイル・ランにセグメント化される
+スタイル・ラン用のフォントが選択される。選択方法は、最初に属性TextAttribute.FONTがある場合はフォントが使用され、そうでない場合は、定義済みの属性を使用してデフォルト・フォントが計算される
+テキストが複数のベースラインにある場合、ランまたはサブランは共通のベースラインを共有するサブランにさらに分割される
+選択されたフォントを使用して各ランにグリフ・ベクトルが生成される
+最終的な双方向の並べ替えがグリフ・ベクトルで実行される
+TextLayoutオブジェクトのメソッドから返されるすべてのグラフィック情報は、TextLayoutオブジェクトのベースラインと左端の交点であるTextLayoutの原点を基準にしています。また、TextLayoutオブジェクトのメソッドに渡される座標は、TextLayoutオブジェクトの原点を基準にしているものと見なされます。通常、クライアントは、TextLayoutオブジェクトの座標系と別のオブジェクト(Graphicsオブジェクトなど)の座標系との間で変換が必要になります。
+
+TextLayoutオブジェクトは、書式付きテキストから構築されますが、ソース・テキストへの参照は保持しません。このため、TextLayoutを生成するために使用されたテキストにその後変更が加えられても、TextLayoutに影響はありません。
+
+TextLayoutオブジェクトの3つのメソッド(getNextRightHit、getNextLeftHit、およびhitTestChar)は、TextHitInfoのインスタンスを返します。それらのTextHitInfoオブジェクトに含まれるオフセットは、TextLayoutを作成するために使用されたテキストではなく、TextLayoutの先頭を基準にします。同じように、TextHitInfoのインスタンスをパラメータとして受け取るTextLayoutのメソッドも、TextHitInfoオブジェクトのオフセットの基準はTextLayoutであり、基本となるテキスト・ストレージ・モデルではないと想定します。
+
+例:
+
+TextLayoutとその境界の矩形の作成および描画
+
+   Graphics2D g = ...;
+   Point2D loc = ...;
+   Font font = Font.getFont("Helvetica-bold-italic");
+   FontRenderContext frc = g.getFontRenderContext();
+   TextLayout layout = new TextLayout("This is a string", font, frc);
+   layout.draw(g, (float)loc.getX(), (float)loc.getY());
+
+   Rectangle2D bounds = layout.getBounds();
+   bounds.setRect(bounds.getX()+loc.getX(),
+                  bounds.getY()+loc.getY(),
+                  bounds.getWidth(),
+                  bounds.getHeight());
+   g.draw(bounds);
+ 
+TextLayoutでヒットをテストします(特定のグラフィック位置にある文字を判定します)。
+
+   Point2D click = ...;
+   TextHitInfo hit = layout.hitTestChar(
+                         (float) (click.getX() - loc.getX()),
+                         (float) (click.getY() - loc.getY()));
+ 
+右矢印キーが押されたことに反応します。
+
+   int insertionIndex = ...;
+   TextHitInfo next = layout.getNextRightHit(insertionIndex);
+   if (next != null) {
+       // translate graphics to origin of layout on screen
+       g.translate(loc.getX(), loc.getY());
+       Shape[] carets = layout.getCaretShapes(next.getInsertionIndex());
+       g.draw(carets[0]);
+       if (carets[1] != null) {
+           g.draw(carets[1]);
+       }
+   }
+ 
+ソース・テキストの部分文字列に対応する選択範囲を描画します。選択された領域は、視覚的に連続していない場合があります。
+
+   // selStart, selLimit should be relative to the layout,
+   // not to the source text
+
+   int selStart = ..., selLimit = ...;
+   Color selectionColor = ...;
+   Shape selection = layout.getLogicalHighlightShape(selStart, selLimit);
+   // selection may consist of disjoint areas
+   // graphics is assumed to be tranlated to origin of layout
+   g.setColor(selectionColor);
+   g.fill(selection);
+ 
+視覚的に連続した選択範囲を描画します。選択範囲は、ソース・テキストの複数の部分文字列に対応することがあります。対応するソース・テキストの部分文字列の範囲は、getLogicalRangesForVisualSelection()により取得できます。
+
+   TextHitInfo selStart = ..., selLimit = ...;
+   Shape selection = layout.getVisualHighlightShape(selStart, selLimit);
+   g.setColor(selectionColor);
+   g.fill(selection);
+   int[] ranges = getLogicalRangesForVisualSelection(selStart, selLimit);
+   // ranges[0], ranges[1] is the first selection range,
+   // ranges[2], ranges[3] is the second selection range, etc.
+ 
+注: フォントを回転するとテキストのベースラインが回転することがあり、複数のランで回転が異なると、ベースラインが屈曲したりジグザグになることがあります。このまれな可能性に対処するために、一部のフォントAPIは指定に従って「ベースラインを基準にした座標で」メトリックスを返したりパラメータを受け取ったりします(アセントや有効幅など)。それ以外のAPIは、「標準の座標で」処理します(getBoundsなど)。ベースラインを基準にした座標では、x座標はベースラインに沿った距離(正のxはベースラインに沿って進む方向)、y座標はxでのベースラインに対する垂線に沿った距離(正のyはベースライン・ベクトルから時計回りに90度の方向)にマップされます。標準の座標では、座標はTextLayoutの原点を0,0として、x軸およびy軸に沿って測定されます。関連する各APIのドキュメントには、どの値がどの座標系で表されるかが示されています。一般に、測定に関連するAPIはベースラインを基準にした座標、表示に関連するAPIは標準の座標を使用します。
+			</p>
         </main>
     </div>
 </body>
