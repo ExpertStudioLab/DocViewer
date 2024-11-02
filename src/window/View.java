@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.io.File;
 
 import javax.swing.JLabel;
@@ -44,11 +45,13 @@ public class View {
 class TextPaneProperty {
 	private JTextPane textPane;
 	private AbstractDocument abstDoc;
+	private int width = 1000;
 	public TextPaneProperty() {
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		this.textPane = new JTextPane();
 		this.textPane.setCaretPosition( 0 );
 		this.textPane.setMargin( new Insets( 20, 40, 20, 40 ) );
-		this.textPane.setPreferredSize( new Dimension( 800, 600 ) );
+		this.textPane.setPreferredSize( new Dimension( screenSize.width, screenSize.height ) );
 		this.abstDoc = ( AbstractDocument ) this.textPane.getStyledDocument();
 		this.abstDoc.setDocumentFilter( new DocumentFilter ( ));
 		this.textPane.setEditable( false );
@@ -60,5 +63,8 @@ class TextPaneProperty {
 	}
 	public AbstractDocument getDocument() {
 		return this.abstDoc;
+	}
+	public int getWidth() {
+		return this.width;
 	}
 }
