@@ -6,31 +6,18 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.InputMethodEvent;
-import java.awt.event.InputMethodListener;
+import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.TextEvent;
-import java.awt.event.TextListener;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
@@ -40,11 +27,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -61,7 +46,6 @@ public class WinDesign extends JFrame {
 
 	public WinDesign( String title ) {
 		super( title );
-		this.setPreferredSize( new Dimension( 800, 600 ) );
 	}
 	
 	public void setScrollPane( JScrollPane scrollPane ) {
@@ -120,38 +104,57 @@ public class WinDesign extends JFrame {
 		StyleConstants.setBold(aSet,  true );
 		try {
 		if( type == 0 ) {
-			StyleConstants.setFontSize( aSet,  15 );
+			StyledDocument doc = this.textProperty.getTextPane().getStyledDocument();
+			SimpleAttributeSet rightAlign = new SimpleAttributeSet();
+			StyleConstants.setFontFamily(rightAlign, "Serif");
+			StyleConstants.setBold( rightAlign, true );
+			StyleConstants.setAlignment(rightAlign, StyleConstants.ALIGN_RIGHT );
+			StyleConstants.setFontSize( rightAlign,  15 );
 			this.textProperty.getDocument().insertString( this.textProperty.getDocument().getLength(),
-					"Åy" + contents + "Åz" + endline, aSet );
+					"Åy" + contents + "Åz" + endline, rightAlign );
+			SwingUtilities.invokeLater( new Runnable() {
+				public void run() {
+					doc.setParagraphAttributes(0, titlePosition, rightAlign, false);
+				}
+			});
 		} else {
 			if( type == 1 ) {
 				this.titlePosition = this.textProperty.getDocument().getLength();
-				StyleConstants.setFontSize( aSet, 25 );
-			     this.textProperty.getTextPane().setParagraphAttributes(aSet, true);
-			} else if( type == 2 ) {
-				StyleConstants.setFontSize( aSet, 20 );
-				this.sectionPosition = this.textProperty.getDocument().getLength();
-			} else if( type == 3 ) {
-				StyleConstants.setFontSize( aSet, 17 );
-				StyleConstants.setBold( aSet, false );
-			}
-			this.textProperty.getDocument().insertString( this.textProperty.getDocument().getLength(),
+				StyledDocument doc = this.textProperty.getTextPane().getStyledDocument();
+				SimpleAttributeSet lineSpace = new SimpleAttributeSet();
+				StyleConstants.setFontFamily(lineSpace,  "Serif" );
+				StyleConstants.setFontSize( lineSpace, 25 );
+				StyleConstants.setBold( lineSpace, true );
+				StyleConstants.setSpaceAbove( lineSpace, 15 );
+				StyleConstants.setSpaceBelow( lineSpace, 10 );
+				this.textProperty.getDocument().insertString( this.textProperty.getDocument().getLength(),
+						contents + endline, lineSpace );
+//			    this.textProperty.getTextPane().setParagraphAttributes( lineSpace, true);
+				SwingUtilities.invokeLater( new Runnable() {
+					public void run() {
+						doc.setParagraphAttributes(titlePosition, sectionPosition - titlePosition, lineSpace, false );						
+					}
+				});
+
+			} else {
+				if( type == 2 ) {
+			
+					StyleConstants.setFontSize( aSet, 20 );
+					this.sectionPosition = this.textProperty.getDocument().getLength();
+				} else if( type == 3 ) {
+					StyleConstants.setFontSize( aSet, 17 );
+					StyleConstants.setBold( aSet, false );
+				}
+				this.textProperty.getDocument().insertString( this.textProperty.getDocument().getLength(),
 											contents + endline, aSet );
+			}
 		}
 		} catch( Exception e ) {
 		}
 	}
 	
 	public void showWindow() throws BadLocationException {
-		SimpleAttributeSet rightAlign = new SimpleAttributeSet();
-		StyleConstants.setAlignment( rightAlign, StyleConstants.ALIGN_RIGHT);
-		StyledDocument doc = this.textProperty.getTextPane().getStyledDocument();
-		doc.setParagraphAttributes(0, titlePosition, rightAlign, false);
-		
-		SimpleAttributeSet lineSpace = new SimpleAttributeSet();
-		StyleConstants.setSpaceAbove( lineSpace, 3 );
-		StyleConstants.setSpaceBelow( lineSpace, 3 );
-		doc.setParagraphAttributes(titlePosition, sectionPosition - titlePosition, lineSpace, false );
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 		MyLabel titleLabel = new MyLabel( );
 		titleLabel.setBackground( new Color( 0.0f, 0.0f, 1.0f, 0.2f ) );
@@ -159,39 +162,54 @@ public class WinDesign extends JFrame {
 		MyLabel secLabel = new MyLabel();
 		secLabel.setBackground( new Color( 0.4f, 0.8f, 0.2f, 0.2f ) );
 		secLabel.setOpaque( true );
-		
-		this.getLayeredPane().add( titleLabel, 1 );
-		this.getLayeredPane().add( secLabel, 0 );
-		this.getLayeredPane().add( this.scrollPane, 2 );
 
+		JLayeredPane layeredPane = new JLayeredPane();
+
+		layeredPane.add( titleLabel, 1 );
+		layeredPane.add( secLabel, 0 );
+		layeredPane.add( this.scrollPane, 2 );
+		JPanel panel1 = new JPanel();
+		panel1.setBackground(Color.yellow);
+		JTextPane text = new JTextPane();
+		text.setPreferredSize( new Dimension( screenSize.width / 6, 200 ));
+		panel1.add(text);
+		JPanel panel2 = new JPanel();
+		panel2.setBackground( Color.green );
+
+		this.setPreferredSize( new Dimension( screenSize.width, screenSize.height ) );
+		this.getContentPane().setSize( new Dimension( screenSize.width, screenSize.height ));
+		this.getContentPane().setLayout( new BorderLayout() );
+		this.getContentPane().add( panel1, BorderLayout.WEST );
+		this.getContentPane().add( panel2, BorderLayout.EAST );
+		this.getContentPane().add( layeredPane, BorderLayout.CENTER );
+
+		this.setFocusable( true );
 		this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		this.setVisible( true );
-		this.scrollPane.setBounds( 20, 20, 800, 600 );
 
+		this.scrollPane.setBounds( 0, 0, screenSize.width * 4 / 6, screenSize.height );		
+		
 		JTextPane textPane = this.textProperty.getTextPane();
 		JFrame frame = this;
 		JScrollPane scrollPane = this.scrollPane;
 		SwingUtilities.invokeLater( new Runnable() {
 			public void run() {
 				Rectangle2D rect;
-				Rectangle2D rect2;
 
 				try {
 					rect = textPane.modelToView2D( titlePosition );
-						titleLabel.setSize( new Dimension( 800, ( int )rect.getHeight() + 7 ) );
-						titleLabel.setLocation( ( int )rect.getX(), ( int )rect.getY() + 10 );
+					titleLabel.setSize( new Dimension( 800, ( int )rect.getHeight() + 7 ) );
+					titleLabel.setLocation( ( int )rect.getX(), ( int )rect.getY() - 20 );
 						
-						rect2 = textPane.modelToView2D(sectionPosition);
-						secLabel.setSize( new Dimension( 400, ( int ) rect2.getHeight() ) );
-						secLabel.setLocation( ( int )rect2.getX(), ( int ) rect2.getY() );
-						System.out.println( (int ) rect2.getY());
+					rect = textPane.modelToView2D(sectionPosition);
+					secLabel.setSize( new Dimension( 400, ( int ) rect.getHeight() ) );
+					secLabel.setLocation( ( int )rect.getX(), ( int ) rect.getY() -15 );
 						
-						System.out.println( secLabel.getLocation().y);	
-						scrollPane.getViewport().addChangeListener( new ScrollLabelListener( titleLabel ) );
-						frame.addKeyListener( new KeyDownListener( scrollPane ) );
-						textPane.addMouseListener( new TextSelectedListener( titleLabel ) );
+					scrollPane.getViewport().addChangeListener( new ScrollLabelListener( titleLabel, secLabel ) );
+					frame.addKeyListener( new KeyDownListener( scrollPane ) );
+					textPane.addMouseListener( new TextSelectedListener( titleLabel ) );
 
-						frame.pack();
+					frame.pack();
 
 				} catch (BadLocationException e) {
 					// TODO Auto-generated catch block
@@ -226,13 +244,18 @@ class MyLabel extends JLabel {
 
 
 class ScrollLabelListener implements ChangeListener {
-	MyLabel label;
-	int x, y;
+	MyLabel titleLabel;
+	MyLabel secLabel;
+	int titleX, titleY;
+	int secX, secY;
 	
-	public ScrollLabelListener( MyLabel label ) {
-		this.label = label;
-		this.x = label.getLocation().x;
-		this.y = label.getLocation().y + 19;
+	public ScrollLabelListener( MyLabel titleLabel, MyLabel secLabel ) {
+		this.titleLabel = titleLabel;
+		this.titleX = titleLabel.getLocation().x;
+		this.titleY = titleLabel.getLocation().y + 19;
+		this.secLabel = secLabel;
+		this.secX = secLabel.getLocation().x;
+		this.secY = secLabel.getLocation().y + 19;		
 	}
 
 	@Override
@@ -242,12 +265,18 @@ class ScrollLabelListener implements ChangeListener {
 			JViewport viewport = (JViewport) e.getSource();
         	Point viewPosition = viewport.getViewPosition();
         	// Ç±Ç±Ç≈JLayeredPaneì‡ÇÃÉRÉìÉ|Å[ÉlÉìÉgÇÃà íuÇçXêV
-        	label.setLocation( 0, 0);
-        	label.repaint();
-        	label.setX( x - viewPosition.x );
-        	label.setY( y - viewPosition.y );
-        	label.setLocation( label.getX(), label.getY() );
-        	label.repaint();
+        	titleLabel.setLocation( 0, 0);
+        	secLabel.setLocation( 0, 0 );
+        	titleLabel.repaint();
+        	secLabel.repaint();
+        	titleLabel.setX( titleX - viewPosition.x );
+        	titleLabel.setY( titleY - viewPosition.y );
+        	titleLabel.setLocation( titleLabel.getX(), titleLabel.getY() );
+        	secLabel.setX( secX - viewPosition.x );
+        	secLabel.setY( secY - viewPosition.y );
+        	secLabel.setLocation(secLabel.getX(), secLabel.getY() );
+        	titleLabel.repaint();
+        	secLabel.repaint();
 	}
 }
 
