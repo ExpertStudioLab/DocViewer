@@ -10,7 +10,10 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 
 @SuppressWarnings("serial")
@@ -28,7 +31,12 @@ public class View {
 		File file = new File( "C:\\Users\\SmartBrightB\\Desktop\\Java Training\\JFrame\\DocViewer\\src\\window\\DOC001.html" );
 		winDesign.setDocument( file );
 
-		winDesign.showWindow();
+		try {
+			winDesign.showWindow();
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
@@ -45,6 +53,7 @@ class TextPaneProperty {
 		this.abstDoc.setDocumentFilter( new DocumentFilter ( ));
 		this.textPane.setEditable( false );
 		this.textPane.setFont( new Font( "Meiryo", Font.LAYOUT_NO_LIMIT_CONTEXT, 25 ) );
+		this.textPane.setFocusable(false);
 	}
 	public JTextPane getTextPane() {
 		return this.textPane;
